@@ -431,7 +431,6 @@ int main(int argc, char *argv[])
 						strcat(msg_to_send, "#");
 						printf("msg: %s\n", msg_to_send);
 
-						// TODO: socket is blocked when client didnt read the message, unblock it
 						send(reciever_sd, msg_to_send, strlen(msg_to_send), 0);
 					}
 				}
