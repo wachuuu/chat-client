@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Username not provided#");
+							strcat(err_msg, "Username or password not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Password not provided#");
+							strcat(err_msg, "Username or password not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Username not provided#");
+							strcat(err_msg, "Username or password not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Password not provided#");
+							strcat(err_msg, "Username or password not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
@@ -476,7 +476,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Reciever of the message not provided#");
+							strcat(err_msg, "Reciever or message not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							strcat(err_msg, "Message not provided#");
+							strcat(err_msg, "Reciever or message not provided#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
