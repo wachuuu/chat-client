@@ -473,7 +473,7 @@ class Ui_Messenger(object):
         self.sendPushButton = QtWidgets.QPushButton(Messenger)
         self.sendPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
         self.sendPushButton.setObjectName("sendPushButton")
-        # self.sendPushButton.clicked.connect(self.sendText(self.usernameLabel.text(), self.sendTextEdit.toPlainText())) # sends text message to server
+        self.sendPushButton.clicked.connect(lambda: self.sendText(self.usernameLabel.text(), self.sendTextEdit.toPlainText())) # sends text message to server
 
         # BACK push button
         self.backPushButton = QtWidgets.QPushButton(Messenger)
@@ -498,11 +498,6 @@ class Ui_Messenger(object):
         self.label.setText(_translate("Messenger", "Chat with"))
         self.usernameLabel.setText(_translate("Messenger", sendto)) # get user's username via global variable
         self.refreshPushButton.setText(_translate("Messenger", "Refresh"))
-    
-    # user that we are texting with name
-    def usr(self):
-        usr = "ktos"
-        return usr
 
     # go back to list window display
     def openListWindow(self):
@@ -512,10 +507,16 @@ class Ui_Messenger(object):
         self.window.hide()
         self.window.show()
 
-    def sendText(self, receiver, message):
-        s.send(bytes("#MSG#"+receiver+"#"+message+"#", "utf-8"))
-        print(receiver)
-        print(message)
+    # send message to server
+    def sendText(self, _receiver, _message):
+        s.send(bytes("#MSG#"+_receiver+"#"+_message+"#", "utf-8"))
+        self.refreshMsg()
+
+    def refreshMsg(self):
+        self.window = QtWidgets.QDialog()
+        self.ui = Ui_Messenger()
+        self.ui.setupUi(self.window)
+        self.window.show()
 
 
 
@@ -535,19 +536,3 @@ if __name__ == "__main__":
 
     MainWindow.show()
     sys.exit(app.exec_())
-
-
-
-    # app = QtWidgets.QApplication(sys.argv)
-    # List = QtWidgets.QDialog()
-    # ui = Ui_List()
-    # ui.setupUi(List)
-    # List.show()
-    # sys.exit(app.exec_())
-
-    # app = QtWidgets.QApplication(sys.argv)
-    # Messenger = QtWidgets.QDialog()
-    # ui = Ui_Messenger()
-    # ui.setupUi(Messenger)
-    # Messenger.show()
-    # sys.exit(app.exec_())
