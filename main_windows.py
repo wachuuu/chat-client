@@ -10,6 +10,7 @@ HOST = "127.0.0.1"
 PORT = 1100
 
 listOfUsers = []
+listOfUsersAvailability = []
 
 # connect to server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -200,10 +201,12 @@ class Ui_Login(object):
             self.showErrorPopup(txt[2])
         else:
             length = len(txt) - 1
-            usersList = txt[2:length]
-            # print(usersList)
+            usersAvailability = txt[2:length:2]
+            usersList = txt[3:length:2]
+            global listOfUsers
             listOfUsers = usersList[:]
-            print(listOfUsers)
+            global listOfUsersAvailability
+            listOfUsersAvailability = usersAvailability[:]
             self.openListWindow()
     
     # open Error Popup function
@@ -217,7 +220,7 @@ class Ui_Login(object):
     def openListWindow(self):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
-        print(listOfUsers)
+        # print(listOfUsers)
         self.ui.setupUi(self.window)
         # Login.hide()
         self.window.show()
@@ -339,15 +342,9 @@ class Ui_List(object):
         self.listWidget = QtWidgets.QListWidget(self.scrollAreaWidgetContents)
         self.listWidget.setGeometry(QtCore.QRect(0, 0, 361, 251))
         self.listWidget.setObjectName("listWidget")
-        # for i in range(len(listOfUsers)):
-        #     item = QtWidgets.QListWidgetItem()
-        #     self.listWidget.addItem(item)
-        item = QtWidgets.QListWidgetItem()
-        self.listWidget.addItem(item)
-        item = QtWidgets.QListWidgetItem()
-        self.listWidget.addItem(item)
-        item = QtWidgets.QListWidgetItem()
-        self.listWidget.addItem(item)
+        for i in range(len(listOfUsers)):
+            item = QtWidgets.QListWidgetItem()
+            self.listWidget.addItem(item)
 
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -374,20 +371,12 @@ class Ui_List(object):
         self.label.setText(_translate("List", "List of users"))
         __sortingEnabled = self.listWidget.isSortingEnabled()
         self.listWidget.setSortingEnabled(False)
-        # print("aa")
-        # print(len(listOfUsers))
-        print("A: "+HOST)
+        global listOfUsers
         for i in range(len(listOfUsers)):
             item = self.listWidget.item(i)
             item.setText(_translate("Dialog", listOfUsers[i]))
             print("x "+listOfUsers[i])
 
-        # item = self.listWidget.item(0)
-        # item.setText(_translate("Dialog", "pierwszy"))
-        # item = self.listWidget.item(1)
-        # item.setText(_translate("Dialog", "drugi"))
-        # item = self.listWidget.item(2)
-        # item.setText(_translate("Dialog", "trzeci"))
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.logoutPushButton.setText(_translate("List", "Log out"))
         self.refreshPushButton.setText(_translate("List", "Refresh"))
@@ -525,26 +514,18 @@ class Ui_Messenger(object):
 if __name__ == "__main__":
     import sys
 
-    while True:
+    # while True:
         # r, w, x = select.select([sys.stdin, s], [], [])
         # if not r:
         #     continue
 
-        app = QtWidgets.QApplication(sys.argv)
-        MainWindow = QtWidgets.QMainWindow()
-        ui = Ui_MainWindow()
-        ui.setupUi(MainWindow)
-        
-        # List = QtWidgets.QDialog()
-        # uiL = Ui_List()
-        # uiL.setupUi(List)
-        
-        # Messenger = QtWidgets.QDialog()
-        # uiM = Ui_Messenger()
-        # uiM.setupUi(Messenger)
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
 
-        MainWindow.show()
-        sys.exit(app.exec_())
+    MainWindow.show()
+    sys.exit(app.exec_())
 
 
 
