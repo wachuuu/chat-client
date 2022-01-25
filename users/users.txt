@@ -1,4 +1,0 @@
-abc def
-aaa bbb
-qwe rty
-user pass
