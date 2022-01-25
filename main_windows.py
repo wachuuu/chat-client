@@ -9,8 +9,10 @@ import sys
 HOST = "127.0.0.1"
 PORT = 1100
 
+# global variables - lists with users and their availability
 listOfUsers = []
 listOfUsersAvailability = []
+sendto = ""
 
 # connect to server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,7 +97,6 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Login()
         self.ui.setupUi(self.window)
-        MainWindow.hide()
         self.window.show()
 
     # open Register Window function
@@ -103,7 +104,6 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Register()
         self.ui.setupUi(self.window)
-        # self.window.hide()
         self.window.show()
 
     # open Exit Popup function
@@ -220,7 +220,6 @@ class Ui_Login(object):
     def openListWindow(self):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
-        # print(listOfUsers)
         self.ui.setupUi(self.window)
         # Login.hide()
         self.window.show()
@@ -313,6 +312,7 @@ class Ui_Register(object):
         msg.setIcon(QMessageBox.Critical)
         msg.exec_()
 
+
 # List of users user interface class
 class Ui_List(object):
     def setupUi(self, List):
@@ -345,6 +345,7 @@ class Ui_List(object):
         for i in range(len(listOfUsers)):
             item = QtWidgets.QListWidgetItem()
             self.listWidget.addItem(item)
+        self.listWidget.itemClicked.connect(self.openMessage)
 
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -375,7 +376,6 @@ class Ui_List(object):
         for i in range(len(listOfUsers)):
             item = self.listWidget.item(i)
             item.setText(_translate("Dialog", listOfUsers[i]))
-            print("x "+listOfUsers[i])
 
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.logoutPushButton.setText(_translate("List", "Log out"))
@@ -387,6 +387,14 @@ class Ui_List(object):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self.window)
         self.window.hide()
+        self.window.show()
+    
+    def openMessage(self, item):
+        global sendto
+        sendto = item.text()
+        self.window = QtWidgets.QDialog()
+        self.ui = Ui_Messenger()
+        self.ui.setupUi(self.window)
         self.window.show()
 
     # open Logout Popup function
@@ -409,6 +417,8 @@ class Ui_List(object):
         self.ui.setupUi(self.window)
         # List.hide()
         self.window.show()
+
+
 
 # Messenger user interface class
 class Ui_Messenger(object):
@@ -486,8 +496,7 @@ class Ui_Messenger(object):
         self.sendPushButton.setText(_translate("Messenger", "Send"))
         self.backPushButton.setText(_translate("Messenger", "Back"))
         self.label.setText(_translate("Messenger", "Chat with"))
-        # self.usernameLabel.setText(_translate("Messenger", "user123"))
-        self.usernameLabel.setText(_translate("Messenger", self.usr())) # get user's username via function
+        self.usernameLabel.setText(_translate("Messenger", sendto)) # get user's username via global variable
         self.refreshPushButton.setText(_translate("Messenger", "Refresh"))
     
     # user that we are texting with name
