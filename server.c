@@ -11,6 +11,7 @@
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include <netdb.h>
 
+#define _GNU_SOURCE
 #define TRUE 1
 #define FALSE 0
 #define PORT 1100
@@ -38,8 +39,9 @@ int main(int argc, char *argv[])
 
 	char buffer[1025];
 	char err_msg[256];
-	fd_set readfds; // set of socket descriptors
-	FILE *users_fd; // file descriptor for users.txt
+	fd_set readfds;	 // set of socket descriptors
+	FILE *users_fd;	 // file descriptor for users.txt
+	FILE *outbox_fd; // file descriptor for outbox.txt
 
 	struct sockaddr_in address;
 	int addrlen;
@@ -187,6 +189,8 @@ int main(int argc, char *argv[])
 					// assigning useful variables
 					char *token;						// for tokens from strtok() function
 					char delimiter[] = "#"; // delimiter for extracting parts of message
+					char *outbox_token;			// for reading outbix messages
+					char outbox_delimiter[] = "$";
 
 					// get first token - type of message (LOGIN, REGISTER, LIST, MSG)
 					token = strtok(buffer, delimiter);
@@ -224,7 +228,7 @@ int main(int argc, char *argv[])
 						}
 
 						// open file with registered users
-						users_fd = fopen("./users/users.txt", "r");
+						users_fd = fopen("./data/users.txt", "r");
 						char line[256]; // to store line read from file
 
 						// copy username to list of active users on the same index as socket
@@ -258,14 +262,37 @@ int main(int argc, char *argv[])
 							strcpy(list, "#");
 							strcat(list, LIST);
 							strcat(list, "#");
+
+							// add to list all active users
 							for (int j = 0; j < max_clients; j++)
 							{
 								if ((strcmp(user_list[j], "") != 0) && j != i)
 								{
+									strcat(list, "T#");
 									strcat(list, user_list[j]);
 									strcat(list, "#");
 								}
 							}
+
+							// open file with registered users
+							users_fd = fopen("./data/users.txt", "r");
+							char username[50];
+
+							while (!feof(users_fd))
+							{
+								// get only first word of the line which is username
+								fscanf(users_fd, "%s%*[^\n]", username);
+								// registered user is not yet on the list - that means he is offline
+								// also dont return current user in the list
+								if (!strcasestr(list, username) && (strcmp(username, user_list[i]) != 0))
+								{
+									strcat(list, "F#");
+									strcat(list, username);
+									strcat(list, "#");
+								}
+							}
+							fclose(users_fd);
+
 							list[strlen(list)] = '\0';
 							send(sd, list, strlen(list), 0);
 						}
@@ -275,6 +302,45 @@ int main(int argc, char *argv[])
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
 						}
+
+						// check if there are messages in outbox for this user
+						outbox_fd = fopen("./data/outbox.txt", "r");
+						char outbox_line[256]; // to store line read from file
+						char msg_for_user[256];
+
+						FILE *temp_fd = fopen("./data/temp.txt", "w"); // create temporary file
+						char temp_line[256];
+
+						while (fgets(outbox_line, sizeof(outbox_line), outbox_fd))
+						{
+							outbox_token = strtok(outbox_line, outbox_delimiter);
+							// found message for user
+							if (strcmp(outbox_token, username) == 0)
+							{
+								// get message to send
+								outbox_token = strtok(NULL, outbox_delimiter);
+								strcpy(msg_for_user, outbox_token);
+								send(sd, msg_for_user, strlen(msg_for_user), 0);
+							}
+							// copy all lines that are not sent to temporary file
+							else
+							{
+								// merge line back to its original form
+								strcpy(temp_line, "$");
+								strcat(temp_line, outbox_token);
+								strcat(temp_line, "$");
+								outbox_token = strtok(NULL, outbox_delimiter);
+								strcat(temp_line, outbox_token);
+								
+								// write line in the temp file
+								fputs(temp_line, temp_fd);
+							}
+						}
+						fclose(outbox_fd);
+						fclose(temp_fd);
+						// remove existing outbox.txt file and replace it with temp.txt file
+						remove("./data/outbox.txt");
+						rename("./data/temp.txt", "./data/outbox.txt");
 					}
 
 					// LOGOUT-----------------------------------------------------------------------------------
@@ -283,7 +349,6 @@ int main(int argc, char *argv[])
 						memset(user_list[i], 0, sizeof user_list[i]);
 						send(sd, "#LOGOUT#Logged out#", strlen("#LOGOUT#Logged out#"), 0);
 					}
-
 
 					// REGISTER-----------------------------------------------------------------------------------
 					else if (strcmp(token, REGISTER) == 0)
@@ -319,7 +384,7 @@ int main(int argc, char *argv[])
 						printf("Successfully registered user: username=%s, password=%s\n", username, password);
 
 						// open file with registered users with append option
-						users_fd = fopen("./users/users.txt", "a");
+						users_fd = fopen("./data/users.txt", "a");
 
 						// concatenate user data to format: "user password"
 						char userdata[256];
@@ -336,11 +401,13 @@ int main(int argc, char *argv[])
 					}
 
 					// LIST-----------------------------------------------------------------------------------
-					// this will return list of active clients
+					// this will return list of all users and info if they are active or not
+					// #T# prefix before the username means that he is active; #F# - unactive
 					if (strcmp(token, LIST) == 0)
 					{
 						// check if client is logged in, if not return an error
-						if (strcmp(user_list[i], "") == 0) {
+						if (strcmp(user_list[i], "") == 0)
+						{
 							strcat(err_msg, "You must log in#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
@@ -350,14 +417,37 @@ int main(int argc, char *argv[])
 						strcpy(list, "#");
 						strcat(list, LIST);
 						strcat(list, "#");
+
+						// add to list all active users
 						for (int j = 0; j < max_clients; j++)
 						{
 							if ((strcmp(user_list[j], "") != 0) && j != i)
 							{
+								strcat(list, "T#");
 								strcat(list, user_list[j]);
 								strcat(list, "#");
 							}
 						}
+
+						// open file with registered users
+						users_fd = fopen("./data/users.txt", "r");
+						char username[50];
+
+						while (!feof(users_fd))
+						{
+							// get only first word of the line which is username
+							fscanf(users_fd, "%s%*[^\n]", username);
+							// registered user is not yet on the list - that means he is offline
+							// also dont return current user in the list
+							if (!strcasestr(list, username) && (strcmp(username, user_list[i]) != 0))
+							{
+								strcat(list, "F#");
+								strcat(list, username);
+								strcat(list, "#");
+							}
+						}
+						fclose(users_fd);
+
 						list[strlen(list)] = '\0';
 						send(sd, list, strlen(list), 0);
 					}
@@ -367,7 +457,8 @@ int main(int argc, char *argv[])
 					if (strcmp(token, MSG) == 0)
 					{
 						// check if client is logged in, if not return an error
-						if (strcmp(user_list[i], "") == 0) {
+						if (strcmp(user_list[i], "") == 0)
+						{
 							strcat(err_msg, "You must log in#");
 							send(sd, err_msg, strlen(err_msg), 0);
 							continue;
@@ -413,25 +504,67 @@ int main(int argc, char *argv[])
 							}
 						}
 
-						// if no one found then sd is still set to zero
+						// if no active user found
 						if (reciever_sd == -1)
 						{
-							strcat(err_msg, "Reciever of the message not found#");
-							send(sd, err_msg, strlen(err_msg), 0);
-							continue;
+							// chceck if reciever exists in registered users
+
+							int found = FALSE;
+							users_fd = fopen("./data/users.txt", "r");
+							char username[50];
+
+							while (!feof(users_fd))
+							{
+								// get only first word of the line which is username
+								fscanf(users_fd, "%s%*[^\n]", username);
+								if (strcmp(reciever, username) == 0)
+								{
+									found = TRUE;
+									break;
+								}
+							}
+							fclose(users_fd);
+
+							if (found)
+							{
+								// add message to outbox file and send it whet user will log in
+								// structure of message to send later is: $TO_WHO$#MSG#FROM_WHO#MESSAGE#
+								strcpy(msg_to_send, "$");
+								strcat(msg_to_send, reciever);
+								strcat(msg_to_send, "$");
+								strcat(msg_to_send, "#");
+								strcat(msg_to_send, MSG);
+								strcat(msg_to_send, "#");
+								strcat(msg_to_send, user_list[i]); // sender
+								strcat(msg_to_send, "#");
+								strcat(msg_to_send, message);
+								strcat(msg_to_send, "#\n");
+
+								// open file with messages to send later
+								outbox_fd = fopen("./data/outbox.txt", "a");
+								fputs(msg_to_send, outbox_fd);
+								fclose(users_fd);
+							}
+							else
+							{
+								strcat(err_msg, "Reciever of the message was not found#");
+								send(sd, err_msg, strlen(err_msg), 0);
+								continue;
+							}
 						}
+						else
+						{
+							// send message to reciever
+							strcpy(msg_to_send, "#");
+							strcat(msg_to_send, MSG);
+							strcat(msg_to_send, "#");
+							strcat(msg_to_send, user_list[i]); // sender
+							strcat(msg_to_send, "#");
+							strcat(msg_to_send, message);
+							strcat(msg_to_send, "#");
 
-						// send message to reciever
-						strcpy(msg_to_send, "#");
-						strcat(msg_to_send, MSG);
-						strcat(msg_to_send, "#");
-						strcat(msg_to_send, user_list[i]); // sender
-						strcat(msg_to_send, "#");
-						strcat(msg_to_send, message);
-						strcat(msg_to_send, "#");
-						printf("msg: %s\n", msg_to_send);
-
-						send(reciever_sd, msg_to_send, strlen(msg_to_send), 0);
+							send(reciever_sd, msg_to_send, strlen(msg_to_send), 0);
+						}
 					}
 				}
 			}
