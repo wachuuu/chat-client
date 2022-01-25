@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
 						char outbox_line[256]; // to store line read from file
 						char msg_for_user[256];
 
-						FILE *temp_fd = fopen("./data/temp.txt", "w");
+						FILE *temp_fd = fopen("./data/temp.txt", "w"); // create temporary file
 						char temp_line[256];
 
 						while (fgets(outbox_line, sizeof(outbox_line), outbox_fd))
@@ -325,18 +325,20 @@ int main(int argc, char *argv[])
 							// copy all lines that are not sent to temporary file
 							else
 							{
+								// merge line back to its original form
 								strcpy(temp_line, "$");
 								strcat(temp_line, outbox_token);
 								strcat(temp_line, "$");
 								outbox_token = strtok(NULL, outbox_delimiter);
 								strcat(temp_line, outbox_token);
-								printf("saved line: %s\n", temp_line);
+								
+								// write line in the temp file
 								fputs(temp_line, temp_fd);
 							}
 						}
 						fclose(outbox_fd);
 						fclose(temp_fd);
-
+						// remove existing outbox.txt file and replace it with temp.txt file
 						remove("./data/outbox.txt");
 						rename("./data/temp.txt", "./data/outbox.txt");
 					}
