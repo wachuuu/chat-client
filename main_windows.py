@@ -9,6 +9,8 @@ import sys
 HOST = "127.0.0.1"
 PORT = 1100
 
+listOfUsers = []
+
 # connect to server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((HOST, PORT))
@@ -92,7 +94,7 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Login()
         self.ui.setupUi(self.window)
-        # MainWindow.hide()
+        MainWindow.hide()
         self.window.show()
 
     # open Register Window function
@@ -100,7 +102,7 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Register()
         self.ui.setupUi(self.window)
-        # MainWindow.hide()
+        # self.window.hide()
         self.window.show()
 
     # open Exit Popup function
@@ -115,14 +117,6 @@ class Ui_MainWindow(object):
         # close app if exit confirmed
         if ret == QMessageBox.Yes:
             sys.exit(app.exec_())
-
-    # open Error Popup function
-    def showErrorPopup(self):
-        msg = QMessageBox()
-        msg.setWindowTitle("Error")
-        msg.setText("err")
-        msg.setIcon(QMessageBox.Critical)
-        msg.exec_()
 
 
 # Login user interface class
@@ -201,10 +195,32 @@ class Ui_Login(object):
         password = self.passwordLine.text()
         s.send(bytes("#LOGIN#"+username+"#"+password+"#", "utf-8"))
         data = s.recv(1024)
-        datastring = data.decode("utf-8")
-        print(datastring)
-        print(type(datastring))
-        # TODO show errors
+        txt = data.decode("utf-8").split("#")
+        if(txt[1] == "ERR"):
+            self.showErrorPopup(txt[2])
+        else:
+            length = len(txt) - 1
+            usersList = txt[2:length]
+            # print(usersList)
+            listOfUsers = usersList[:]
+            print(listOfUsers)
+            self.openListWindow()
+    
+    # open Error Popup function
+    def showErrorPopup(self, txt):
+        msg = QMessageBox()
+        msg.setWindowTitle("Error")
+        msg.setText(txt)
+        msg.setIcon(QMessageBox.Critical)
+        msg.exec_()
+
+    def openListWindow(self):
+        self.window = QtWidgets.QDialog()
+        self.ui = Ui_List()
+        print(listOfUsers)
+        self.ui.setupUi(self.window)
+        # Login.hide()
+        self.window.show()
 
 
 # Register user interface class
@@ -281,8 +297,18 @@ class Ui_Register(object):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
         s.send(bytes("#REGISTER#"+username+"#"+password+"#", "utf-8"))
-        # show errors
-
+        data = s.recv(1024)
+        txt = data.decode("utf-8").split("#")
+        if(txt[1] == "ERR"):
+            self.showErrorPopup(txt[2])
+    
+    # open Error Popup function
+    def showErrorPopup(self, txt):
+        msg = QMessageBox()
+        msg.setWindowTitle("Error")
+        msg.setText(txt)
+        msg.setIcon(QMessageBox.Critical)
+        msg.exec_()
 
 # List of users user interface class
 class Ui_List(object):
@@ -310,9 +336,18 @@ class Ui_List(object):
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
 
         # set parameters for text browser showing users list
-        self.textBrowser = QtWidgets.QTextBrowser(self.scrollAreaWidgetContents)
-        self.textBrowser.setGeometry(QtCore.QRect(0, 0, 361, 251))
-        self.textBrowser.setObjectName("textBrowser")
+        self.listWidget = QtWidgets.QListWidget(self.scrollAreaWidgetContents)
+        self.listWidget.setGeometry(QtCore.QRect(0, 0, 361, 251))
+        self.listWidget.setObjectName("listWidget")
+        # for i in range(len(listOfUsers)):
+        #     item = QtWidgets.QListWidgetItem()
+        #     self.listWidget.addItem(item)
+        item = QtWidgets.QListWidgetItem()
+        self.listWidget.addItem(item)
+        item = QtWidgets.QListWidgetItem()
+        self.listWidget.addItem(item)
+        item = QtWidgets.QListWidgetItem()
+        self.listWidget.addItem(item)
 
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -327,6 +362,7 @@ class Ui_List(object):
         self.refreshPushButton = QtWidgets.QPushButton(List)
         self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
         self.refreshPushButton.setObjectName("refreshPushButton")
+        self.refreshPushButton.clicked.connect(self.refreshList) # load List Window again via function
 
         self.retranslateUi(List)
         QtCore.QMetaObject.connectSlotsByName(List)
@@ -336,6 +372,23 @@ class Ui_List(object):
         # set titles for each component
         List.setWindowTitle(_translate("List", "List"))
         self.label.setText(_translate("List", "List of users"))
+        __sortingEnabled = self.listWidget.isSortingEnabled()
+        self.listWidget.setSortingEnabled(False)
+        # print("aa")
+        # print(len(listOfUsers))
+        print("A: "+HOST)
+        for i in range(len(listOfUsers)):
+            item = self.listWidget.item(i)
+            item.setText(_translate("Dialog", listOfUsers[i]))
+            print("x "+listOfUsers[i])
+
+        # item = self.listWidget.item(0)
+        # item.setText(_translate("Dialog", "pierwszy"))
+        # item = self.listWidget.item(1)
+        # item.setText(_translate("Dialog", "drugi"))
+        # item = self.listWidget.item(2)
+        # item.setText(_translate("Dialog", "trzeci"))
+        self.listWidget.setSortingEnabled(__sortingEnabled)
         self.logoutPushButton.setText(_translate("List", "Log out"))
         self.refreshPushButton.setText(_translate("List", "Refresh"))
 
@@ -344,7 +397,7 @@ class Ui_List(object):
         self.window = QtWidgets.QMainWindow()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self.window)
-        List.hide()
+        self.window.hide()
         self.window.show()
 
     # open Logout Popup function
@@ -360,6 +413,13 @@ class Ui_List(object):
         if ret == QMessageBox.Yes:
             s.send(bytes("#LOGOUT#", "utf-8"))
             self.openMainWindow()
+
+    def refreshList(self):
+        self.window = QtWidgets.QDialog()
+        self.ui = Ui_List()
+        self.ui.setupUi(self.window)
+        # List.hide()
+        self.window.show()
 
 # Messenger user interface class
 class Ui_Messenger(object):
@@ -414,6 +474,7 @@ class Ui_Messenger(object):
         self.sendPushButton = QtWidgets.QPushButton(Messenger)
         self.sendPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
         self.sendPushButton.setObjectName("sendPushButton")
+        # self.sendPushButton.clicked.connect(self.sendText(self.usernameLabel.text(), self.sendTextEdit.toPlainText())) # sends text message to server
 
         # BACK push button
         self.backPushButton = QtWidgets.QPushButton(Messenger)
@@ -450,8 +511,13 @@ class Ui_Messenger(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
         self.ui.setupUi(self.window)
-        Messenger.hide()
+        self.window.hide()
         self.window.show()
+
+    def sendText(self, receiver, message):
+        s.send(bytes("#MSG#"+receiver+"#"+message+"#", "utf-8"))
+        print(receiver)
+        print(message)
 
 
 
@@ -468,6 +534,15 @@ if __name__ == "__main__":
         MainWindow = QtWidgets.QMainWindow()
         ui = Ui_MainWindow()
         ui.setupUi(MainWindow)
+        
+        # List = QtWidgets.QDialog()
+        # uiL = Ui_List()
+        # uiL.setupUi(List)
+        
+        # Messenger = QtWidgets.QDialog()
+        # uiM = Ui_Messenger()
+        # uiM.setupUi(Messenger)
+
         MainWindow.show()
         sys.exit(app.exec_())
 
