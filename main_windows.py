@@ -200,6 +200,10 @@ class Ui_Login(object):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
         s.send(bytes("#LOGIN#"+username+"#"+password+"#", "utf-8"))
+        data = s.recv(1024)
+        datastring = data.decode("utf-8")
+        print(datastring)
+        print(type(datastring))
         # TODO show errors
 
 
@@ -415,6 +419,7 @@ class Ui_Messenger(object):
         self.backPushButton = QtWidgets.QPushButton(Messenger)
         self.backPushButton.setGeometry(QtCore.QRect(290, 310, 93, 31))
         self.backPushButton.setObjectName("backPushButton")
+        self.backPushButton.clicked.connect(self.openListWindow) # open List Window via function
         
         # REFRESH push button
         self.refreshPushButton = QtWidgets.QPushButton(Messenger)
@@ -439,6 +444,14 @@ class Ui_Messenger(object):
     def usr(self):
         usr = "ktos"
         return usr
+
+    # go back to list window display
+    def openListWindow(self):
+        self.window = QtWidgets.QDialog()
+        self.ui = Ui_List()
+        self.ui.setupUi(self.window)
+        Messenger.hide()
+        self.window.show()
 
 
 
