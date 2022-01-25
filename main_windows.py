@@ -12,10 +12,14 @@ import sys
 HOST = "127.0.0.1"
 PORT = 1100
 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(500, 500)
+        MainWindow.resize(400, 400)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         font = QtGui.QFont()
         font.setFamily("Yu Gothic")
@@ -23,7 +27,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setFont(font)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(20, 100, 451, 311))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(60, 110, 281, 231))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -39,34 +43,24 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.registerButton)
         self.registerButton.clicked.connect(self.openRegisterWindow)
 
-        self.listButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.listButton.setObjectName("listButton")
-        self.verticalLayout.addWidget(self.listButton)
-
-        self.messageButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.messageButton.setObjectName("messageButton")
-        self.verticalLayout.addWidget(self.messageButton)
-
-        self.logoutButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
-        self.logoutButton.setObjectName("logoutButton")
-        self.verticalLayout.addWidget(self.logoutButton)
-        self.logoutButton.clicked.connect(self.showLogoutPopup)
-
         self.exitButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.exitButton.setObjectName("exitButton")
         self.verticalLayout.addWidget(self.exitButton)
         self.exitButton.clicked.connect(self.showExitPopup)
 
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(20, 30, 181, 31))
+        self.label.setGeometry(QtCore.QRect(60, 40, 281, 51))
         font = QtGui.QFont()
         font.setFamily("Yu Gothic")
-        font.setPointSize(18)
+        font.setPointSize(24)
+        font.setBold(False)
+        font.setWeight(50)
         self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignCenter) # Chat Client title in the middle
         self.label.setObjectName("label")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 500, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 400, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -81,9 +75,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.loginButton.setText(_translate("MainWindow", "Log in"))
         self.registerButton.setText(_translate("MainWindow", "Register"))
-        self.listButton.setText(_translate("MainWindow", "List"))
-        self.messageButton.setText(_translate("MainWindow", "Message"))
-        self.logoutButton.setText(_translate("MainWindow", "Log out"))
         self.exitButton.setText(_translate("MainWindow", "Exit"))
         self.label.setText(_translate("MainWindow", "Chat Client"))
     
@@ -115,7 +106,10 @@ class Ui_MainWindow(object):
         msg.setText("Are you sure you want to exit?")
         msg.setIcon(QMessageBox.Warning)
         msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
-        msg.exec_()
+        ret = msg.exec_()
+        if ret == QMessageBox.Yes:
+            sys.exit(app.exec_())
+
 
     def showErrorPopup(self):
         msg = QMessageBox()
@@ -130,7 +124,7 @@ class Ui_Login(object):
         Login.setObjectName("Login")
         Login.resize(400, 400)
         self.buttonBox = QtWidgets.QDialogButtonBox(Login)
-        self.buttonBox.setGeometry(QtCore.QRect(40, 350, 341, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(10, 350, 371, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
@@ -187,8 +181,7 @@ class Ui_Login(object):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
         print(username, " + ", password)
-        # TODO
-        # send username and password to server
+        s.send(bytes("#LOGIN#"+username+"#"+password+"#", "utf-8"))
         # show errors
 
 
@@ -197,7 +190,7 @@ class Ui_Register(object):
         Register.setObjectName("Register")
         Register.resize(400, 400)
         self.buttonBox = QtWidgets.QDialogButtonBox(Register)
-        self.buttonBox.setGeometry(QtCore.QRect(40, 350, 341, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(10, 350, 371, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
@@ -252,22 +245,147 @@ class Ui_Register(object):
     def acceptRegister(self):
         username = self.usernameLine.text()
         password = self.passwordLine.text()
-        # print(username, " + ", password)
-        # TODO
-        # send username and password to server
+        s.send(bytes("#REGISTER#"+username+"#"+password+"#", "utf-8"))
         # show errors
+
+
+class Ui_List(object):
+    def setupUi(self, List):
+        List.setObjectName("List")
+        List.resize(400, 400)
+        self.label = QtWidgets.QLabel(List)
+        self.label.setGeometry(QtCore.QRect(20, 30, 351, 31))
+        font = QtGui.QFont()
+        font.setFamily("Yu Gothic")
+        font.setPointSize(18)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.scrollArea = QtWidgets.QScrollArea(List)
+        self.scrollArea.setGeometry(QtCore.QRect(20, 80, 361, 251))
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setObjectName("scrollArea")
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 359, 249))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.textBrowser = QtWidgets.QTextBrowser(self.scrollAreaWidgetContents)
+        self.textBrowser.setGeometry(QtCore.QRect(0, 0, 361, 251))
+        self.textBrowser.setObjectName("textBrowser")
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.backPushButton = QtWidgets.QPushButton(List)
+        self.backPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
+        self.backPushButton.setObjectName("backPushButton")
+        self.refreshPushButton = QtWidgets.QPushButton(List)
+        self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
+        self.refreshPushButton.setObjectName("refreshPushButton")
+
+        self.retranslateUi(List)
+        QtCore.QMetaObject.connectSlotsByName(List)
+
+    def retranslateUi(self, List):
+        _translate = QtCore.QCoreApplication.translate
+        List.setWindowTitle(_translate("List", "List"))
+        self.label.setText(_translate("List", "List of users"))
+        self.backPushButton.setText(_translate("List", "Back"))
+        self.refreshPushButton.setText(_translate("List", "Refresh"))
+
+
+class Ui_Messenger(object):
+    def setupUi(self, Messenger):
+        Messenger.setObjectName("Messenger")
+        Messenger.resize(400, 400)
+        self.sendTextEdit = QtWidgets.QTextEdit(Messenger)
+        self.sendTextEdit.setGeometry(QtCore.QRect(10, 310, 271, 71))
+        self.sendTextEdit.setObjectName("sendTextEdit")
+        self.scrollArea = QtWidgets.QScrollArea(Messenger)
+        self.scrollArea.setGeometry(QtCore.QRect(10, 80, 371, 211))
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setObjectName("scrollArea")
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 369, 209))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.textBrowser = QtWidgets.QTextBrowser(self.scrollAreaWidgetContents)
+        self.textBrowser.setGeometry(QtCore.QRect(0, 0, 371, 211))
+        self.textBrowser.setObjectName("textBrowser")
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.sendPushButton = QtWidgets.QPushButton(Messenger)
+        self.sendPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
+        self.sendPushButton.setObjectName("sendPushButton")
+        self.backPushButton = QtWidgets.QPushButton(Messenger)
+        self.backPushButton.setGeometry(QtCore.QRect(290, 310, 93, 31))
+        self.backPushButton.setObjectName("backPushButton")
+        self.label = QtWidgets.QLabel(Messenger)
+        self.label.setGeometry(QtCore.QRect(10, 30, 111, 31))
+        font = QtGui.QFont()
+        font.setFamily("Yu Gothic")
+        font.setPointSize(18)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.usernameLabel = QtWidgets.QLabel(Messenger)
+        self.usernameLabel.setGeometry(QtCore.QRect(120, 30, 181, 31))
+        font = QtGui.QFont()
+        font.setFamily("Yu Gothic")
+        font.setPointSize(18)
+        font.setBold(True)
+        font.setWeight(75)
+        self.usernameLabel.setFont(font)
+        self.usernameLabel.setObjectName("usernameLabel")
+        self.refreshPushButton = QtWidgets.QPushButton(Messenger)
+        self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
+        self.refreshPushButton.setObjectName("refreshPushButton")
+
+        self.retranslateUi(Messenger)
+        QtCore.QMetaObject.connectSlotsByName(Messenger)
+
+    def retranslateUi(self, Messenger):
+        _translate = QtCore.QCoreApplication.translate
+        Messenger.setWindowTitle(_translate("Messenger", "Messenger"))
+        self.sendPushButton.setText(_translate("Messenger", "Send"))
+        self.backPushButton.setText(_translate("Messenger", "Back"))
+        self.label.setText(_translate("Messenger", "Chat with"))
+        # self.usernameLabel.setText(_translate("Messenger", "user123"))
+        self.usernameLabel.setText(_translate("Messenger", self.usr()))
+        self.refreshPushButton.setText(_translate("Messenger", "Refresh"))
+    
+    def usr(self):
+        usr = "ktos"
+        return usr
+
 
 
 
 if __name__ == "__main__":
     import sys
-
+    # app = QtWidgets.QApplication(sys.argv)
+    # MainWindow = QtWidgets.QMainWindow()
+    # ui = Ui_MainWindow()
     # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     #     s.connect((HOST, PORT))
 
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    while True:
+        # r, w, x = select.select([sys.stdin, s], [], [])
+        # if not r:
+        #     continue
+
+        app = QtWidgets.QApplication(sys.argv)
+        MainWindow = QtWidgets.QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(MainWindow)
+        MainWindow.show()
+        sys.exit(app.exec_())
+
     sys.exit(app.exec_())
+
+
+    # app = QtWidgets.QApplication(sys.argv)
+    # List = QtWidgets.QDialog()
+    # ui = Ui_List()
+    # ui.setupUi(List)
+    # List.show()
+    # sys.exit(app.exec_())
+
+    # app = QtWidgets.QApplication(sys.argv)
+    # Messenger = QtWidgets.QDialog()
+    # ui = Ui_Messenger()
+    # ui.setupUi(Messenger)
+    # Messenger.show()
+    # sys.exit(app.exec_())
