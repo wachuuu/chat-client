@@ -103,15 +103,6 @@ class Ui_MainWindow(object):
         # MainWindow.hide()
         self.window.show()
 
-    # open Logout Popup function
-    # def showLogoutPopup(self):
-    #     msg = QMessageBox()
-    #     msg.setWindowTitle("Log out")
-    #     msg.setText("Are you sure you want to log out?")
-    #     msg.setIcon(QMessageBox.Question)
-    #     msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
-    #     msg.exec_()
-
     # open Exit Popup function
     def showExitPopup(self):
         msg = QMessageBox()
@@ -455,26 +446,26 @@ class Ui_Messenger(object):
 if __name__ == "__main__":
     import sys
 
-    # while True:
-    #     # r, w, x = select.select([sys.stdin, s], [], [])
-    #     # if not r:
-    #     #     continue
+    while True:
+        # r, w, x = select.select([sys.stdin, s], [], [])
+        # if not r:
+        #     continue
 
-    #     app = QtWidgets.QApplication(sys.argv)
-    #     MainWindow = QtWidgets.QMainWindow()
-    #     ui = Ui_MainWindow()
-    #     ui.setupUi(MainWindow)
-    #     MainWindow.show()
-    #     sys.exit(app.exec_())
+        app = QtWidgets.QApplication(sys.argv)
+        MainWindow = QtWidgets.QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(MainWindow)
+        MainWindow.show()
+        sys.exit(app.exec_())
 
 
 
-    app = QtWidgets.QApplication(sys.argv)
-    List = QtWidgets.QDialog()
-    ui = Ui_List()
-    ui.setupUi(List)
-    List.show()
-    sys.exit(app.exec_())
+    # app = QtWidgets.QApplication(sys.argv)
+    # List = QtWidgets.QDialog()
+    # ui = Ui_List()
+    # ui.setupUi(List)
+    # List.show()
+    # sys.exit(app.exec_())
 
     # app = QtWidgets.QApplication(sys.argv)
     # Messenger = QtWidgets.QDialog()
