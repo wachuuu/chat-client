@@ -1,11 +1,11 @@
-from tkinter import S
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTimer
-
+import errno
 import socket
 import sys
+from tkinter import S
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 HOST = "127.0.0.1"
 PORT = 1100
@@ -38,24 +38,30 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        
+
         # LOGIN push button
         self.loginButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.loginButton.setObjectName("loginButton")
         self.verticalLayout.addWidget(self.loginButton)
-        self.loginButton.clicked.connect(self.openLoginWindow) # open Login Window via function
+
+        # open Login Window via function
+        self.loginButton.clicked.connect(self.openLoginWindow)
 
         # REGISTER push button
         self.registerButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.registerButton.setObjectName("registerButton")
         self.verticalLayout.addWidget(self.registerButton)
-        self.registerButton.clicked.connect(self.openRegisterWindow) # open Register Window via function
+
+        # open Register Window via function
+        self.registerButton.clicked.connect(self.openRegisterWindow)
 
         # EXIT push button
         self.exitButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
         self.exitButton.setObjectName("exitButton")
         self.verticalLayout.addWidget(self.exitButton)
-        self.exitButton.clicked.connect(self.showExitPopup) # open Exit Popup via function
+
+        # open Exit Popup via function
+        self.exitButton.clicked.connect(self.showExitPopup)
 
         # set parameters for Main Window title - Chat Client
         self.label = QtWidgets.QLabel(self.centralwidget)
@@ -66,7 +72,9 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setWeight(50)
         self.label.setFont(font)
-        self.label.setAlignment(QtCore.Qt.AlignCenter) # Chat Client title in the middle
+
+        # Chat Client title in the middle
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -92,7 +100,7 @@ class Ui_MainWindow(object):
         self.registerButton.setText(_translate("MainWindow", "Register"))
         self.exitButton.setText(_translate("MainWindow", "Exit"))
         self.label.setText(_translate("MainWindow", "Chat Client"))
-    
+
     # open Login Window function
     def openLoginWindow(self):
         self.window = QtWidgets.QDialog()
@@ -115,7 +123,7 @@ class Ui_MainWindow(object):
         msg.setWindowTitle("Exit")
         msg.setText("Are you sure you want to exit?")
         msg.setIcon(QMessageBox.Warning)
-        msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         ret = msg.exec_()
 
         # close app if exit confirmed
@@ -134,7 +142,8 @@ class Ui_Login(object):
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
 
         # set buttons to log in and cancel
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.frame = QtWidgets.QFrame(Login)
         self.frame.setGeometry(QtCore.QRect(20, 100, 361, 231))
@@ -178,7 +187,8 @@ class Ui_Login(object):
         self.retranslateUi(Login)
 
         # Accept and reject buttons actions
-        self.buttonBox.accepted.connect(self.acceptLogin) # send login data if accepted
+        # send login data if accepted
+        self.buttonBox.accepted.connect(self.acceptLogin)
         self.buttonBox.accepted.connect(Login.accept)
 
         self.buttonBox.rejected.connect(self.openMainWindow)
@@ -212,7 +222,7 @@ class Ui_Login(object):
             global listOfUsersAvailability
             listOfUsersAvailability = usersAvailability[:]
             self.openListWindow()
-    
+
     # open Error Popup function
     def showErrorPopup(self, txt):
         msg = QMessageBox()
@@ -247,7 +257,8 @@ class Ui_Register(object):
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
 
         # set buttons to register and cancel
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.frame = QtWidgets.QFrame(Register)
         self.frame.setGeometry(QtCore.QRect(20, 100, 361, 231))
@@ -291,7 +302,8 @@ class Ui_Register(object):
         self.retranslateUi(Register)
 
         # Accept and reject buttons actions
-        self.buttonBox.accepted.connect(self.acceptRegister) # send register data if accepted
+        # send register data if accepted
+        self.buttonBox.accepted.connect(self.acceptRegister)
         self.buttonBox.accepted.connect(Register.accept)
 
         self.buttonBox.rejected.connect(Register.reject)
@@ -315,7 +327,7 @@ class Ui_Register(object):
         txt = data.decode("utf-8").split("#")
         if(txt[1] == "ERR"):
             self.showErrorPopup(txt[2])
-    
+
     # open Error Popup function
     def showErrorPopup(self, txt):
         msg = QMessageBox()
@@ -366,13 +378,15 @@ class Ui_List(object):
         self.logoutPushButton = QtWidgets.QPushButton(List)
         self.logoutPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
         self.logoutPushButton.setObjectName("logoutPushButton")
-        self.logoutPushButton.clicked.connect(lambda: self.showLogoutPopup(List)) # open Logout Popup via function
+        self.logoutPushButton.clicked.connect(
+            lambda: self.showLogoutPopup(List))  # open Logout Popup via function
 
         # REFRESH push button
         self.refreshPushButton = QtWidgets.QPushButton(List)
         self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
         self.refreshPushButton.setObjectName("refreshPushButton")
-        self.refreshPushButton.clicked.connect(lambda: self.refreshList(List)) # load List Window again via function
+        # load List Window again via function
+        self.refreshPushButton.clicked.connect(lambda: self.refreshList(List))
 
         self.retranslateUi(List)
         QtCore.QMetaObject.connectSlotsByName(List)
@@ -391,7 +405,8 @@ class Ui_List(object):
                 av = "available"
             else:
                 av = "unavailable"
-            item.setText(_translate("Dialog", listOfUsers[i] + " (" + av + ")"))
+            item.setText(_translate(
+                "Dialog", listOfUsers[i] + " (" + av + ")"))
 
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.logoutPushButton.setText(_translate("List", "Log out"))
@@ -404,7 +419,7 @@ class Ui_List(object):
         self.ui.setupUi(self.window)
         self.window.hide()
         self.window.show()
-    
+
     def openMessage(self, item):
         global sendto
         sendto = item.text().split()[0]
@@ -429,6 +444,21 @@ class Ui_List(object):
             self.openMainWindow()
 
     def refreshList(self, _List):
+        s.send(bytes("#LIST#", "utf-8"))
+        data = s.recv(1024)
+        txt = data.decode("utf-8").split("#")
+        if(txt[1] == "ERR"):
+            self.showErrorPopup(txt[2])
+        else:
+            length = len(txt) - 1
+            usersAvailability = txt[2:length:2]
+            usersList = txt[3:length:2]
+            global listOfUsers
+            listOfUsers = usersList[:]
+            global listOfUsersAvailability
+            listOfUsersAvailability = usersAvailability[:]
+
+
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
         self.ui.setupUi(self.window)
@@ -483,12 +513,19 @@ class Ui_Messenger(object):
         font.setBold(False)
         self.chatBody.setFont(font)
 
-        data = s.recv(1024)
         s.setblocking(0)
-        messages = data.decode("utf-8").split("#")
-        for i in range(len(messages)):
-            if messages[i] == "MSG":
-                self.chatBody.append(messages[i+1] + ": " + messages[i+2])
+        try:
+            data = s.recv(1024)
+            messages = data.decode("utf-8").split("#")
+            for i in range(len(messages)):
+                if messages[i] == "MSG":
+                    self.chatBody.append(messages[i+1] + ": " + messages[i+2])
+        except socket.error as e:
+            if e.args[0] == errno.EWOULDBLOCK or e.args[0] == errno.EAGAIN:
+                print('EWOULDBLOCK')
+            else:
+                print(e)
+        s.setblocking(1)
 
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -544,12 +581,20 @@ class Ui_Messenger(object):
         self.sendTextEdit.setPlainText("")
 
     def refreshMsg(self):
-        data = s.recv(1024)
         s.setblocking(0)
-        messages = data.decode("utf-8").split("#")
-        for i in range(len(messages)):
-            if messages[i] == "MSG":
-                self.chatBody.append(messages[i+1] + ": " + messages[i+2])
+        try:
+            data = s.recv(1024)
+            messages = data.decode("utf-8").split("#")
+            for i in range(len(messages)):
+                if messages[i] == "MSG":
+                    self.chatBody.append(messages[i+1] + ": " + messages[i+2])
+        except socket.error as e:
+            if e.args[0] == errno.EWOULDBLOCK or e.args[0] == errno.EAGAIN:
+                print('EWOULDBLOCK')
+            else:
+                print(e)
+        s.setblocking(1)
+
 
 
 
