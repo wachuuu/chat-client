@@ -48,9 +48,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.send(bytes("#LIST#", "utf-8"))
 
 			elif opt == "4":
-				reciever = input("reciever: ")
+				receiver = input("receiever: ")
 				message = input("message: ")
-				s.send(bytes("#MSG#"+reciever+"#"+message+"#", "utf-8"))
+				s.send(bytes("#MSG#"+receiver+"#"+message+"#", "utf-8"))
 
 			elif opt == "5":
 				s.send(bytes("#LOGOUT#", "utf-8"))
@@ -58,7 +58,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 			elif opt == "6":
 				break
 
-		# if there is incomming message from the server, recieve it and print
+		# if there is incomming message from the server, receive it and print
 		else:
 				data = s.recv(1024)
 				print("\n>>>", data.decode(), "\n")

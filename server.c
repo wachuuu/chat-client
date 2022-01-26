@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	int opt = TRUE;		 // opt for reusing addresses
 	int master_socket; // master server socket
 	int new_socket;		 // new socet for incoming connections
-	int sd;						 // auxiliaty socket descriptor
+	int sd;						 // auxiliary socket descriptor
 	int max_sd;				 // maximum socket number
 
 	int client_socket[30];	// list of client socket descriptors
