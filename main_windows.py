@@ -210,7 +210,6 @@ class Ui_Login(object):
         password = self.passwordLine.text()
         s.send(bytes("#LOGIN#"+username+"#"+password+"#", "utf-8"))
         data = s.recv(1024)
-        print('list login ',data)
         txt = data.decode("utf-8").split("#")
         if(txt[1] == "ERR"):
             self.showErrorPopup(txt[2])
