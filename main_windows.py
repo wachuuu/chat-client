@@ -1,10 +1,13 @@
 from tkinter import S
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTimer
 
 import select
 import socket
 import sys
+import _thread
 
 HOST = "127.0.0.1"
 PORT = 1100
@@ -419,7 +422,6 @@ class Ui_List(object):
         self.window.show()
 
 
-
 # Messenger user interface class
 class Ui_Messenger(object):
     def setupUi(self, Messenger):
@@ -457,9 +459,15 @@ class Ui_Messenger(object):
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
 
         # set parameters for text browser showing messages
-        self.textBrowser = QtWidgets.QTextBrowser(self.scrollAreaWidgetContents)
-        self.textBrowser.setGeometry(QtCore.QRect(0, 0, 371, 211))
-        self.textBrowser.setObjectName("textBrowser")
+        self.chatBody = QtWidgets.QTextEdit(self.scrollAreaWidgetContents)
+        self.chatBody.setGeometry(QtCore.QRect(0, 0, 371, 211))
+        self.chatBody.setObjectName("textEdit")
+        self.chatBody.setReadOnly(True)
+        font = QtGui.QFont()
+        font.setFamily("Yu Gothic")
+        font.setPointSize(10)
+        font.setBold(False)
+        self.chatBody.setFont(font)
 
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
@@ -510,7 +518,7 @@ class Ui_Messenger(object):
     # send message to server
     def sendText(self, _receiver, _message):
         s.send(bytes("#MSG#"+_receiver+"#"+_message+"#", "utf-8"))
-        self.refreshMsg()
+        self.chatBody.append("me:" + " " + _message)
 
     def refreshMsg(self):
         self.window = QtWidgets.QDialog()
@@ -520,19 +528,31 @@ class Ui_Messenger(object):
 
 
 
+def chamar():
+    print("TEST")
+
+
 
 if __name__ == "__main__":
     import sys
-
-    # while True:
-        # r, w, x = select.select([sys.stdin, s], [], [])
-        # if not r:
-        #     continue
-
+    
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
-
     MainWindow.show()
+
+    # timer = QTimer()
+    # timer.timeout.connect(chamar)  # execute display_time
+    # timer.setInterval(1000)  # 1000ms = 1s
+    # timer.start()
+    # timer.stop()
+
+    sys.exit(app.exec_())
+
+    # while True:
+    #     r, w, x = select.select([s], [], [])
+        
+
+
     sys.exit(app.exec_())
