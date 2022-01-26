@@ -210,6 +210,7 @@ class Ui_Login(object):
         password = self.passwordLine.text()
         s.send(bytes("#LOGIN#"+username+"#"+password+"#", "utf-8"))
         data = s.recv(1024)
+        print('list login ',data)
         txt = data.decode("utf-8").split("#")
         if(txt[1] == "ERR"):
             self.showErrorPopup(txt[2])
@@ -522,7 +523,7 @@ class Ui_Messenger(object):
                     self.chatBody.append(messages[i+1] + ": " + messages[i+2])
         except socket.error as e:
             if e.args[0] == errno.EWOULDBLOCK or e.args[0] == errno.EAGAIN:
-                print('EWOULDBLOCK')
+                pass
             else:
                 print(e)
         s.setblocking(1)
@@ -590,7 +591,7 @@ class Ui_Messenger(object):
                     self.chatBody.append(messages[i+1] + ": " + messages[i+2])
         except socket.error as e:
             if e.args[0] == errno.EWOULDBLOCK or e.args[0] == errno.EAGAIN:
-                print('EWOULDBLOCK')
+                pass
             else:
                 print(e)
         s.setblocking(1)
