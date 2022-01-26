@@ -4,10 +4,8 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer
 
-import select
 import socket
 import sys
-import _thread
 
 HOST = "127.0.0.1"
 PORT = 1100
@@ -100,6 +98,7 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Login()
         self.ui.setupUi(self.window)
+        MainWindow.hide()
         self.window.show()
 
     # open Register Window function
@@ -107,6 +106,7 @@ class Ui_MainWindow(object):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Register()
         self.ui.setupUi(self.window)
+        # MainWindow.hide()
         self.window.show()
 
     # open Exit Popup function
@@ -181,6 +181,7 @@ class Ui_Login(object):
         self.buttonBox.accepted.connect(self.acceptLogin) # send login data if accepted
         self.buttonBox.accepted.connect(Login.accept)
 
+        self.buttonBox.rejected.connect(self.openMainWindow)
         self.buttonBox.rejected.connect(Login.reject)
 
         QtCore.QMetaObject.connectSlotsByName(Login)
@@ -223,6 +224,13 @@ class Ui_Login(object):
     def openListWindow(self):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
+        self.ui.setupUi(self.window)
+        # Login.hide()
+        self.window.show()
+
+    def openMainWindow(self):
+        self.window = QtWidgets.QMainWindow()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self.window)
         # Login.hide()
         self.window.show()
@@ -287,6 +295,7 @@ class Ui_Register(object):
         self.buttonBox.accepted.connect(Register.accept)
 
         self.buttonBox.rejected.connect(Register.reject)
+
         QtCore.QMetaObject.connectSlotsByName(Register)
 
     def retranslateUi(self, Dialog):
@@ -357,13 +366,13 @@ class Ui_List(object):
         self.logoutPushButton = QtWidgets.QPushButton(List)
         self.logoutPushButton.setGeometry(QtCore.QRect(290, 350, 93, 31))
         self.logoutPushButton.setObjectName("logoutPushButton")
-        self.logoutPushButton.clicked.connect(self.showLogoutPopup) # open Logout Popup via function
+        self.logoutPushButton.clicked.connect(lambda: self.showLogoutPopup(List)) # open Logout Popup via function
 
         # REFRESH push button
         self.refreshPushButton = QtWidgets.QPushButton(List)
         self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
         self.refreshPushButton.setObjectName("refreshPushButton")
-        self.refreshPushButton.clicked.connect(self.refreshList) # load List Window again via function
+        self.refreshPushButton.clicked.connect(lambda: self.refreshList(List)) # load List Window again via function
 
         self.retranslateUi(List)
         QtCore.QMetaObject.connectSlotsByName(List)
@@ -378,7 +387,11 @@ class Ui_List(object):
         global listOfUsers
         for i in range(len(listOfUsers)):
             item = self.listWidget.item(i)
-            item.setText(_translate("Dialog", listOfUsers[i]))
+            if listOfUsersAvailability[i] == "T":
+                av = "available"
+            else:
+                av = "unavailable"
+            item.setText(_translate("Dialog", listOfUsers[i] + " (" + av + ")"))
 
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.logoutPushButton.setText(_translate("List", "Log out"))
@@ -394,14 +407,14 @@ class Ui_List(object):
     
     def openMessage(self, item):
         global sendto
-        sendto = item.text()
+        sendto = item.text().split()[0]
         self.window = QtWidgets.QDialog()
         self.ui = Ui_Messenger()
         self.ui.setupUi(self.window)
         self.window.show()
 
     # open Logout Popup function
-    def showLogoutPopup(self):
+    def showLogoutPopup(self, _List):
         msg = QMessageBox()
         msg.setWindowTitle("Log out")
         msg.setText("Are you sure you want to log out?")
@@ -412,13 +425,14 @@ class Ui_List(object):
         # open main window if logout confirmed
         if ret == QMessageBox.Yes:
             s.send(bytes("#LOGOUT#", "utf-8"))
+            _List.hide()
             self.openMainWindow()
 
-    def refreshList(self):
+    def refreshList(self, _List):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
         self.ui.setupUi(self.window)
-        # List.hide()
+        _List.hide()
         self.window.show()
 
 
@@ -469,6 +483,13 @@ class Ui_Messenger(object):
         font.setBold(False)
         self.chatBody.setFont(font)
 
+        data = s.recv(1024)
+        s.setblocking(0)
+        messages = data.decode("utf-8").split("#")
+        for i in range(len(messages)):
+            if messages[i] == "MSG":
+                self.chatBody.append(messages[i+1] + ": " + messages[i+2])
+
         # set up scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
@@ -487,12 +508,13 @@ class Ui_Messenger(object):
         self.backPushButton = QtWidgets.QPushButton(Messenger)
         self.backPushButton.setGeometry(QtCore.QRect(290, 310, 93, 31))
         self.backPushButton.setObjectName("backPushButton")
-        self.backPushButton.clicked.connect(self.openListWindow) # open List Window via function
+        self.backPushButton.clicked.connect(lambda: self.openListWindow(Messenger)) # open List Window via function
         
         # REFRESH push button
         self.refreshPushButton = QtWidgets.QPushButton(Messenger)
         self.refreshPushButton.setGeometry(QtCore.QRect(290, 10, 91, 21))
         self.refreshPushButton.setObjectName("refreshPushButton")
+        self.refreshPushButton.clicked.connect(self.refreshMsg)
 
         self.retranslateUi(Messenger)
         QtCore.QMetaObject.connectSlotsByName(Messenger)
@@ -508,28 +530,27 @@ class Ui_Messenger(object):
         self.refreshPushButton.setText(_translate("Messenger", "Refresh"))
 
     # go back to list window display
-    def openListWindow(self):
+    def openListWindow(self, _Messenger):
         self.window = QtWidgets.QDialog()
         self.ui = Ui_List()
         self.ui.setupUi(self.window)
-        self.window.hide()
+        _Messenger.hide()
         self.window.show()
 
     # send message to server
     def sendText(self, _receiver, _message):
         s.send(bytes("#MSG#"+_receiver+"#"+_message+"#", "utf-8"))
         self.chatBody.append("me:" + " " + _message)
+        self.sendTextEdit.setPlainText("")
 
     def refreshMsg(self):
-        self.window = QtWidgets.QDialog()
-        self.ui = Ui_Messenger()
-        self.ui.setupUi(self.window)
-        self.window.show()
+        data = s.recv(1024)
+        s.setblocking(0)
+        messages = data.decode("utf-8").split("#")
+        for i in range(len(messages)):
+            if messages[i] == "MSG":
+                self.chatBody.append(messages[i+1] + ": " + messages[i+2])
 
-
-
-def chamar():
-    print("TEST")
 
 
 
@@ -541,18 +562,5 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-
-    # timer = QTimer()
-    # timer.timeout.connect(chamar)  # execute display_time
-    # timer.setInterval(1000)  # 1000ms = 1s
-    # timer.start()
-    # timer.stop()
-
-    sys.exit(app.exec_())
-
-    # while True:
-    #     r, w, x = select.select([s], [], [])
-        
-
 
     sys.exit(app.exec_())

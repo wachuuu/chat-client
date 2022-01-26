@@ -11,4 +11,3 @@ $bb$#MSG#aa#asdsadas#
 $bb$#MSG#aa#Hej#
 $bb$#MSG#aa#Hej
 #
-$bb$#MSG#aa#dupa#
